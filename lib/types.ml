@@ -24,9 +24,9 @@ type transient_expr =
     mutable level: int;
     mutable scope: int;
     id: int }
-
+[@@deriving  yojson]
 and type_expr = transient_expr
-
+[@@deriving  yojson]
 and type_desc =
     Tvar of string option
   | Tarrow of arg_label * type_expr * type_expr * commutable
@@ -41,16 +41,19 @@ and type_desc =
   | Tunivar of string option
   | Tpoly of type_expr * type_expr list
   | Tpackage of Path.t * (Longident.t * type_expr) list
-
+[@@deriving  yojson]
 and row_desc =
     { row_fields: (label * row_field) list;
       row_more: type_expr;
       row_closed: bool;
       row_fixed: fixed_explanation option;
       row_name: (Path.t * type_expr list) option }
+[@@deriving  yojson]
 and fixed_explanation =
   | Univar of type_expr | Fixed_private | Reified of Path.t | Rigid
+[@@deriving  yojson]
 and row_field = [`some] row_field_gen
+[@@deriving  yojson]
 and _ row_field_gen =
     RFpresent : type_expr option -> [> `some] row_field_gen
   | RFeither :
@@ -60,28 +63,32 @@ and _ row_field_gen =
         ext: [`some | `none] row_field_gen ref} -> [> `some] row_field_gen
   | RFabsent : [> `some] row_field_gen
   | RFnone : [> `none] row_field_gen
-
+[@@deriving  yojson]
 and abbrev_memo =
     Mnil
   | Mcons of private_flag * Path.t * type_expr * type_expr * abbrev_memo
   | Mlink of abbrev_memo ref
-
+[@@deriving  yojson]
 and any = [`some | `none | `var]
+[@@deriving  yojson]
 and field_kind = [`some|`var] field_kind_gen
+[@@deriving  yojson]
 and _ field_kind_gen =
     FKvar : {mutable field_kind: any field_kind_gen} -> [> `var] field_kind_gen
   | FKprivate : [> `none] field_kind_gen  (* private method; only under FKvar *)
   | FKpublic  : [> `some] field_kind_gen  (* public method *)
   | FKabsent  : [> `some] field_kind_gen  (* hidden private method *)
-
+[@@deriving  yojson]
 and commutable = [`some|`var] commutable_gen
+[@@deriving  yojson]
 and _ commutable_gen =
     Cok      : [> `some] commutable_gen
   | Cunknown : [> `none] commutable_gen
   | Cvar : {mutable commu: any commutable_gen} -> [> `var] commutable_gen
-
+[@@deriving  yojson]
 module TransientTypeOps = struct
   type t = type_expr
+  [@@deriving  yojson]
   let compare t1 t2 = t1.id - t2.id
   let hash t = t.id
   let equal t1 t2 = t1 == t2
@@ -109,7 +116,7 @@ type value_description =
     val_attributes: Parsetree.attributes;
     val_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and value_kind =
     Val_reg                             (* Regular value *)
   | Val_prim of Primitive.description   (* Primitive *)
@@ -119,21 +126,21 @@ and value_kind =
                                         (* Self *)
   | Val_anc of class_signature * Ident.t Meths.t * string
                                         (* Ancestor *)
-
+[@@deriving  yojson]
 and self_meths =
   | Self_concrete of Ident.t Meths.t
   | Self_virtual of Ident.t Meths.t ref
-
+[@@deriving  yojson]
 and class_signature =
   { csig_self: type_expr;
     mutable csig_self_row: type_expr;
     mutable csig_vars: (mutable_flag * virtual_flag * type_expr) Vars.t;
     mutable csig_meths: (method_privacy * virtual_flag * type_expr) Meths.t; }
-
+[@@deriving  yojson]
 and method_privacy =
   | Mpublic
   | Mprivate of field_kind
-
+[@@deriving  yojson]
 (* Variance *)
 
 module Variance = struct
@@ -170,7 +177,9 @@ end
 
 module Separability = struct
   type t = Ind | Sep | Deepsep
+  [@@deriving  yojson]
   type signature = t list
+  [@@deriving  yojson]
   let eq (m1 : t) m2 = (m1 = m2)
   let rank = function
     | Ind -> 0
@@ -212,26 +221,26 @@ type type_declaration =
     type_unboxed_default: bool;
     type_uid: Uid.t;
  }
-
+[@@deriving  yojson]
 and type_decl_kind = (label_declaration, constructor_declaration) type_kind
-
+[@@deriving  yojson]
 and ('lbl, 'cstr) type_kind =
     Type_abstract
   | Type_record of 'lbl list * record_representation
   | Type_variant of 'cstr list * variant_representation
   | Type_open
-
+[@@deriving  yojson]
 and record_representation =
     Record_regular                      (* All fields are boxed / tagged *)
   | Record_float                        (* All fields are floats *)
   | Record_unboxed of bool    (* Unboxed single-field record, inlined or not *)
   | Record_inlined of int               (* Inlined record *)
   | Record_extension of Path.t          (* Inlined record under extension *)
-
+[@@deriving  yojson]
 and variant_representation =
     Variant_regular          (* Constant or boxed constructors *)
   | Variant_unboxed          (* One unboxed single-field constructor *)
-
+[@@deriving  yojson]
 and label_declaration =
   {
     ld_id: Ident.t;
@@ -241,7 +250,7 @@ and label_declaration =
     ld_attributes: Parsetree.attributes;
     ld_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and constructor_declaration =
   {
     cd_id: Ident.t;
@@ -251,7 +260,7 @@ and constructor_declaration =
     cd_attributes: Parsetree.attributes;
     cd_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and constructor_arguments =
   | Cstr_tuple of type_expr list
   | Cstr_record of label_declaration list
@@ -266,19 +275,19 @@ type extension_constructor =
     ext_attributes: Parsetree.attributes;
     ext_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and type_transparence =
     Type_public      (* unrestricted expansion *)
   | Type_new         (* "new" type *)
   | Type_private     (* private type *)
-
+[@@deriving  yojson]
 (* Type expressions for the class language *)
 
 type class_type =
     Cty_constr of Path.t * type_expr list * class_type
   | Cty_signature of class_signature
   | Cty_arrow of arg_label * type_expr * class_type
-
+[@@deriving  yojson]
 type class_declaration =
   { cty_params: type_expr list;
     mutable cty_type: class_type;
@@ -299,29 +308,30 @@ type class_type_declaration =
     clty_attributes: Parsetree.attributes;
     clty_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 (* Type expressions for the module language *)
 
 type visibility =
   | Exported
   | Hidden
+[@@deriving  yojson]
 
 type module_type =
     Mty_ident of Path.t
   | Mty_signature of signature
   | Mty_functor of functor_parameter * module_type
   | Mty_alias of Path.t
-
+[@@deriving  yojson]
 and functor_parameter =
   | Unit
   | Named of Ident.t option * module_type
-
+[@@deriving  yojson]
 and module_presence =
   | Mp_present
   | Mp_absent
-
+[@@deriving  yojson]
 and signature = signature_item list
-
+[@@deriving  yojson]
 and signature_item =
     Sig_value of Ident.t * value_description * visibility
   | Sig_type of Ident.t * type_declaration * rec_status * visibility
@@ -331,7 +341,7 @@ and signature_item =
   | Sig_modtype of Ident.t * modtype_declaration * visibility
   | Sig_class of Ident.t * class_declaration * rec_status * visibility
   | Sig_class_type of Ident.t * class_type_declaration * rec_status * visibility
-
+[@@deriving  yojson]
 and module_declaration =
   {
     md_type: module_type;
@@ -339,7 +349,7 @@ and module_declaration =
     md_loc: Location.t;
     md_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and modtype_declaration =
   {
     mtd_type: module_type option;  (* Note: abstract *)
@@ -347,12 +357,12 @@ and modtype_declaration =
     mtd_loc: Location.t;
     mtd_uid: Uid.t;
   }
-
+[@@deriving  yojson]
 and rec_status =
     Trec_not                   (* first in a nonrecursive group *)
   | Trec_first                 (* first in a recursive group *)
   | Trec_next                  (* not first in a recursive/nonrecursive group *)
-
+[@@deriving  yojson]
 and ext_status =
     Text_first                     (* first constructor of an extension *)
   | Text_next                      (* not first constructor of an extension *)
@@ -378,8 +388,8 @@ type constructor_description =
     cstr_inlined: type_declaration option;
     cstr_uid: Uid.t;
    }
-
-and constructor_tag =
+[@@deriving  yojson]
+and  constructor_tag =
     Cstr_constant of int                (* Constant constructor (an int) *)
   | Cstr_block of int                   (* Regular constructor (a block) *)
   | Cstr_unboxed                        (* Constructor of an unboxed type *)

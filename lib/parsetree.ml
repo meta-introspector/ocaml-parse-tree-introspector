@@ -12,7 +12,7 @@
 (*   special exception on linking described in the file LICENSE.          *)
 (*                                                                        *)
 (**************************************************************************)
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 (** Abstract syntax tree produced by parsing
 
   {b Warning:} this module is unstable and part of
@@ -515,7 +515,8 @@ and type_declaration =
               when [type_kind] is {{!type_kind.Ptype_open}[Ptype_open]},
                and [manifest]  is [None].
 *)
-[@@deriving  yojson]
+
+
 and type_kind =
   | Ptype_abstract
   | Ptype_variant of constructor_declaration list
@@ -543,7 +544,7 @@ and label_declaration =
    Note: [T] can be a {{!core_type_desc.Ptyp_poly}[Ptyp_poly]}.
 *)
 
-[@@deriving  yojson]
+
 and constructor_declaration =
     {
      pcd_name: string loc;

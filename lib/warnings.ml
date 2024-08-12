@@ -17,7 +17,7 @@
    - the list 'description' at the bottom of this file
    - man/ocamlc.m
 *)
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 type loc = {
   loc_start: Lexing.position;
   loc_end: Lexing.position;
@@ -500,8 +500,8 @@ type state =
   {
     active: bool array;
     error: bool array;
-    alerts: (Misc.Stdlib.String.Set.t * bool); (* false:set complement *)
-    alert_errors: (Misc.Stdlib.String.Set.t * bool); (* false:set complement *)
+    (* alerts: (Misc.Stdlib.String.Set.t * bool); (\* false:set complement *\) *)
+    (* alert_errors: (Misc.Stdlib.String.Set.t * bool); (\* false:set complement *\) *)
   }
 [@@deriving  yojson]
 let current =
@@ -509,8 +509,8 @@ let current =
     {
       active = Array.make (last_warning_number + 1) true;
       error = Array.make (last_warning_number + 1) false;
-      alerts = (Misc.Stdlib.String.Set.empty, false); (* all enabled *)
-      alert_errors = (Misc.Stdlib.String.Set.empty, true); (* all soft *)
+      (* alerts = (Misc.Stdlib.String.Set.empty, false); (\* all enabled *\) *)
+      (* alert_errors = (Misc.Stdlib.String.Set.empty, true); (\* all soft *\) *)
     }
 
 let disabled = ref false
@@ -528,15 +528,15 @@ let is_active x =
 let is_error x =
   not !disabled && (!current).error.(number x)
 
-let alert_is_active {kind; _} =
-  not !disabled &&
-  let (set, pos) = (!current).alerts in
-  Misc.Stdlib.String.Set.mem kind set = pos
+(* let alert_is_active {kind; _} = *)
+(*   not !disabled && *)
+(*   let (set, pos) = (!current).alerts in *)
+(*   Misc.Stdlib.String.Set.mem kind set = pos *)
 
-let alert_is_error {kind; _} =
-  not !disabled &&
-  let (set, pos) = (!current).alert_errors in
-  Misc.Stdlib.String.Set.mem kind set = pos
+(* let alert_is_error {kind; _} = *)
+(*   not !disabled && *)
+(*   let (set, pos) = (!current).alert_errors in *)
+(*   Misc.Stdlib.String.Set.mem kind set = pos *)
 
 let with_state state f =
   let prev = backup () in
@@ -553,58 +553,58 @@ let mk_lazy f =
   let state = backup () in
   lazy (with_state state f)
 
-let set_alert ~error ~enable s =
-  let upd =
-    match s with
-    | "all" ->
-        (Misc.Stdlib.String.Set.empty, not enable)
-    | s ->
-        let (set, pos) =
-          if error then (!current).alert_errors else (!current).alerts
-        in
-        let f =
-          if enable = pos
-          then Misc.Stdlib.String.Set.add
-          else Misc.Stdlib.String.Set.remove
-        in
-        (f s set, pos)
-  in
-  if error then
-    current := {(!current) with alert_errors=upd}
-  else
-    current := {(!current) with alerts=upd}
+(* let set_alert ~error ~enable s = *)
+(*   let upd = *)
+(*     match s with *)
+(*     | "all" -> *)
+(*         (Misc.Stdlib.String.Set.empty, not enable) *)
+(*     | s -> *)
+(*         let (set, pos) = *)
+(*           if error then (!current).alert_errors else (!current).alerts *)
+(*         in *)
+(*         let f = *)
+(*           if enable = pos *)
+(*           then Misc.Stdlib.String.Set.add *)
+(*           else Misc.Stdlib.String.Set.remove *)
+(*         in *)
+(*         (f s set, pos) *)
+(*   in *)
+(*   if error then *)
+(*     current := {(!current) with alert_errors=upd} *)
+(*   else *)
+(*     current := {(!current) with alerts=upd} *)
 
-let parse_alert_option s =
-  let n = String.length s in
-  let id_char = function
-    | 'a'..'z' | 'A'..'Z' | '_' | '\'' | '0'..'9' -> true
-    | _ -> false
-  in
-  let rec parse_id i =
-    if i < n && id_char s.[i] then parse_id (i + 1) else i
-  in
-  let rec scan i =
-    if i = n then ()
-    else if i + 1 = n then raise (Arg.Bad "Ill-formed list of alert settings")
-    else match s.[i], s.[i+1] with
-      | '+', '+' -> id (set_alert ~error:true ~enable:true) (i + 2)
-      | '+', _ -> id (set_alert ~error:false ~enable:true) (i + 1)
-      | '-', '-' -> id (set_alert ~error:true ~enable:false) (i + 2)
-      | '-', _ -> id (set_alert ~error:false ~enable:false) (i + 1)
-      | '@', _ ->
-          id (fun s ->
-              set_alert ~error:true ~enable:true s;
-              set_alert ~error:false ~enable:true s)
-            (i + 1)
-      | _ -> raise (Arg.Bad "Ill-formed list of alert settings")
-  and id f i =
-    let j = parse_id i in
-    if j = i then raise (Arg.Bad "Ill-formed list of alert settings");
-    let id = String.sub s i (j - i) in
-    f id;
-    scan j
-  in
-  scan 0
+(* let parse_alert_option s = *)
+(*   let n = String.length s in *)
+(*   let id_char = function *)
+(*     | 'a'..'z' | 'A'..'Z' | '_' | '\'' | '0'..'9' -> true *)
+(*     | _ -> false *)
+(*   in *)
+(*   let rec parse_id i = *)
+(*     if i < n && id_char s.[i] then parse_id (i + 1) else i *)
+(*   in *)
+(*   let rec scan i = *)
+(*     if i = n then () *)
+(*     else if i + 1 = n then raise (Arg.Bad "Ill-formed list of alert settings") *)
+(*     else match s.[i], s.[i+1] with *)
+(*       | '+', '+' -> id (set_alert ~error:true ~enable:true) (i + 2) *)
+(*       | '+', _ -> id (set_alert ~error:false ~enable:true) (i + 1) *)
+(*       | '-', '-' -> id (set_alert ~error:true ~enable:false) (i + 2) *)
+(*       | '-', _ -> id (set_alert ~error:false ~enable:false) (i + 1) *)
+(*       | '@', _ -> *)
+(*           id (fun s -> *)
+(*               set_alert ~error:true ~enable:true s; *)
+(*               set_alert ~error:false ~enable:true s) *)
+(*             (i + 1) *)
+(*       | _ -> raise (Arg.Bad "Ill-formed list of alert settings") *)
+(*   and id f i = *)
+(*     let j = parse_id i in *)
+(*     if j = i then raise (Arg.Bad "Ill-formed list of alert settings"); *)
+(*     let id = String.sub s i (j - i) in *)
+(*     f id; *)
+(*     scan j *)
+(*   in *)
+(*   scan 0 *)
 
 type modifier =
   | Set (** +a *)
@@ -616,75 +616,75 @@ type token =
   | Letter of char * modifier option
   | Num of int * int * modifier
 [@@deriving  yojson]
-let letter_alert tokens =
-  let print_warning_char ppf c =
-    let lowercase = Char.lowercase_ascii c = c in
-    Format.fprintf ppf "%c%c"
-      (if lowercase then '-' else '+') c
-  in
-  let print_modifier ppf = function
-    | Set_all -> Format.fprintf ppf "@"
-    | Clear -> Format.fprintf ppf "-"
-    | Set -> Format.fprintf ppf "+"
-  in
-  let print_token ppf = function
-    | Num (a,b,m) -> if a = b then
-          Format.fprintf ppf "%a%d" print_modifier m a
-        else
-          Format.fprintf ppf "%a%d..%d" print_modifier m a b
-    | Letter(l,Some m) -> Format.fprintf ppf "%a%c" print_modifier m l
-    | Letter(l,None) -> print_warning_char ppf l
-  in
-  let consecutive_letters =
-    (* we are tracking sequences of 2 or more consecutive unsigned letters
-       in warning strings, for instance in '-w "not-principa"'. *)
-    let commit_chunk l = function
-      | [] | [ _ ] -> l
-      | _ :: _ :: _ as chunk -> List.rev chunk :: l
-    in
-    let group_consecutive_letters (l,current) = function
-    | Letter (x, None) -> (l, x::current)
-    | _ -> (commit_chunk l current, [])
-    in
-    let l, on_going =
-      List.fold_left group_consecutive_letters ([],[]) tokens
-    in
-    commit_chunk l on_going
-  in
-  match consecutive_letters with
-  | [] -> None
-  | example :: _  ->
-      let pos = { Lexing.dummy_pos with pos_fname = "_none_" } in
-      let nowhere = { loc_start=pos; loc_end=pos; loc_ghost=true } in
-      let spelling_hint ppf =
-        let max_seq_len =
-          List.fold_left (fun l x -> Int.max l (List.length x))
-            0 consecutive_letters
-        in
-        if max_seq_len >= 5 then
-          Format.fprintf ppf
-            "@ @[Hint: Did you make a spelling mistake \
-             when using a mnemonic name?@]"
-        else
-          ()
-      in
-      let message =
-        Format.asprintf
-          "@[<v>@[Setting a warning with a sequence of lowercase \
-           or uppercase letters,@ like '%a',@ is deprecated.@]@ \
-           @[Use the equivalent signed form:@ %t.@]@ \
-           @[Hint: Enabling or disabling a warning by its mnemonic name \
-           requires a + or - prefix.@]\
-           %t@?@]"
-          Format.(pp_print_list ~pp_sep:(fun _ -> ignore) pp_print_char) example
-          (fun ppf -> List.iter (print_token ppf) tokens)
-          spelling_hint
-      in
-      Some {
-        kind="ocaml_deprecated_cli";
-        use=nowhere; def=nowhere;
-        message
-      }
+(* let letter_alert tokens = *)
+(*   let print_warning_char ppf c = *)
+(*     let lowercase = Char.lowercase_ascii c = c in *)
+(*     Format.fprintf ppf "%c%c" *)
+(*       (if lowercase then '-' else '+') c *)
+(*   in *)
+(*   let print_modifier ppf = function *)
+(*     | Set_all -> Format.fprintf ppf "@" *)
+(*     | Clear -> Format.fprintf ppf "-" *)
+(*     | Set -> Format.fprintf ppf "+" *)
+(*   in *)
+(*   let print_token ppf = function *)
+(*     | Num (a,b,m) -> if a = b then *)
+(*           Format.fprintf ppf "%a%d" print_modifier m a *)
+(*         else *)
+(*           Format.fprintf ppf "%a%d..%d" print_modifier m a b *)
+(*     | Letter(l,Some m) -> Format.fprintf ppf "%a%c" print_modifier m l *)
+(*     | Letter(l,None) -> print_warning_char ppf l *)
+(*   in *)
+(*   let consecutive_letters = *)
+(*     (\* we are tracking sequences of 2 or more consecutive unsigned letters *)
+(*        in warning strings, for instance in '-w "not-principa"'. *\) *)
+(*     let commit_chunk l = function *)
+(*       | [] | [ _ ] -> l *)
+(*       | _ :: _ :: _ as chunk -> List.rev chunk :: l *)
+(*     in *)
+(*     let group_consecutive_letters (l,current) = function *)
+(*     | Letter (x, None) -> (l, x::current) *)
+(*     | _ -> (commit_chunk l current, []) *)
+(*     in *)
+(*     let l, on_going = *)
+(*       List.fold_left group_consecutive_letters ([],[]) tokens *)
+(*     in *)
+(*     commit_chunk l on_going *)
+(*   in *)
+(*   match consecutive_letters with *)
+(*   | [] -> None *)
+(*   | example :: _  -> *)
+(*       let pos = { Lexing.dummy_pos with pos_fname = "_none_" } in *)
+(*       let nowhere = { loc_start=pos; loc_end=pos; loc_ghost=true } in *)
+(*       let spelling_hint ppf = *)
+(*         let max_seq_len = *)
+(*           List.fold_left (fun l x -> Int.max l (List.length x)) *)
+(*             0 consecutive_letters *)
+(*         in *)
+(*         if max_seq_len >= 5 then *)
+(*           Format.fprintf ppf *)
+(*             "@ @[Hint: Did you make a spelling mistake \ *)
+(*              when using a mnemonic name?@]" *)
+(*         else *)
+(*           () *)
+(*       in *)
+(*       let message = *)
+(*         Format.asprintf *)
+(*           "@[<v>@[Setting a warning with a sequence of lowercase \ *)
+(*            or uppercase letters,@ like '%a',@ is deprecated.@]@ \ *)
+(*            @[Use the equivalent signed form:@ %t.@]@ \ *)
+(*            @[Hint: Enabling or disabling a warning by its mnemonic name \ *)
+(*            requires a + or - prefix.@]\ *)
+(*            %t@?@]" *)
+(*           Format.(pp_print_list ~pp_sep:(fun _ -> ignore) pp_print_char) example *)
+(*           (fun ppf -> List.iter (print_token ppf) tokens) *)
+(*           spelling_hint *)
+(*       in *)
+(*       Some { *)
+(*         kind="ocaml_deprecated_cli"; *)
+(*         use=nowhere; def=nowhere; *)
+(*         message *)
+(*       } *)
 
 
 let parse_warnings s =
@@ -725,335 +725,6 @@ let parse_warnings s =
   in
   loop [] 0
 
-let parse_opt error active errflag s =
-  let flags = if errflag then error else active in
-  let action modifier i = match modifier with
-    | Set ->
-        if i = 3 then set_alert ~error:errflag ~enable:true "deprecated"
-        else flags.(i) <- true
-    | Clear ->
-        if i = 3 then set_alert ~error:errflag ~enable:false "deprecated"
-        else flags.(i) <- false
-    | Set_all ->
-        if i = 3 then begin
-          set_alert ~error:false ~enable:true "deprecated";
-          set_alert ~error:true ~enable:true "deprecated"
-        end
-        else begin
-          active.(i) <- true;
-          error.(i) <- true
-        end
-  in
-  let eval = function
-    | Letter(c, m) ->
-        let lc = Char.lowercase_ascii c in
-        let modifier = match m with
-          | None -> if c = lc then Clear else Set
-          | Some m -> m
-        in
-        List.iter (action modifier) (letter lc)
-    | Num(n1,n2,modifier) ->
-        for n = n1 to Int.min n2 last_warning_number do action modifier n done
-  in
-  let parse_and_eval s =
-    let tokens = parse_warnings s in
-    List.iter eval tokens;
-    letter_alert tokens
-  in
-   match name_to_number s with
-  | Some n -> action Set n; None
-  | None ->
-      if s = "" then parse_and_eval s
-      else begin
-        let rest = String.sub s 1 (String.length s - 1) in
-        match s.[0], name_to_number rest with
-        | '+', Some n -> action Set n; None
-        | '-', Some n -> action Clear n; None
-        | '@', Some n -> action Set_all n; None
-        | _ -> parse_and_eval s
-      end
-;;
-
-let parse_options errflag s =
-  let error = Array.copy (!current).error in
-  let active = Array.copy (!current).active in
-  let alerts = parse_opt error active errflag s in
-  current := {(!current) with error; active};
-  alerts
-
-(* If you change these, don't forget to change them in man/ocamlc.m *)
-let defaults_w = "+a-4-7-9-27-29-30-32..42-44-45-48-50-60-66..70";;
-let defaults_warn_error = "-a+31";;
-
-let () = ignore @@ parse_options false defaults_w;;
-let () = ignore @@ parse_options true defaults_warn_error;;
-
-let ref_manual_explanation () =
-  (* manual references are checked a posteriori by the manual
-     cross-reference consistency check in manual/tests*)
-  let[@manual.ref "s:comp-warnings"] chapter, section = 11, 5 in
-  Printf.sprintf "(See manual section %d.%d)" chapter section
-
-let message = function
-  | Comment_start ->
-      "this `(*' is the start of a comment.\n\
-       Hint: Did you forget spaces when writing the infix operator `( * )'?"
-  | Comment_not_end -> "this is not the end of a comment."
-  | Fragile_match "" ->
-      "this pattern-matching is fragile."
-  | Fragile_match s ->
-      "this pattern-matching is fragile.\n\
-       It will remain exhaustive when constructors are added to type " ^ s ^ "."
-  | Ignored_partial_application ->
-      "this function application is partial,\n\
-       maybe some arguments are missing."
-  | Labels_omitted [] -> assert false
-  | Labels_omitted [l] ->
-     "label " ^ l ^ " was omitted in the application of this function."
-  | Labels_omitted ls ->
-     "labels " ^ String.concat ", " ls ^
-       " were omitted in the application of this function."
-  | Method_override [lab] ->
-      "the method " ^ lab ^ " is overridden."
-  | Method_override (cname :: slist) ->
-      String.concat " "
-        ("the following methods are overridden by the class"
-         :: cname  :: ":\n " :: slist)
-  | Method_override [] -> assert false
-  | Partial_match "" -> "this pattern-matching is not exhaustive."
-  | Partial_match s ->
-      "this pattern-matching is not exhaustive.\n\
-       Here is an example of a case that is not matched:\n" ^ s
-  | Missing_record_field_pattern s ->
-      "the following labels are not bound in this record pattern:\n" ^ s ^
-      "\nEither bind these labels explicitly or add '; _' to the pattern."
-  | Non_unit_statement ->
-      "this expression should have type unit."
-  | Redundant_case -> "this match case is unused."
-  | Redundant_subpat -> "this sub-pattern is unused."
-  | Instance_variable_override [lab] ->
-      "the instance variable " ^ lab ^ " is overridden."
-  | Instance_variable_override (cname :: slist) ->
-      String.concat " "
-        ("the following instance variables are overridden by the class"
-         :: cname  :: ":\n " :: slist)
-  | Instance_variable_override [] -> assert false
-  | Illegal_backslash -> "illegal backslash escape in string."
-  | Implicit_public_methods l ->
-      "the following private methods were made public implicitly:\n "
-      ^ String.concat " " l ^ "."
-  | Unerasable_optional_argument -> "this optional argument cannot be erased."
-  | Undeclared_virtual_method m -> "the virtual method "^m^" is not declared."
-  | Not_principal s -> s^" is not principal."
-  | Non_principal_labels s -> s^" without principality."
-  | Ignored_extra_argument -> "this argument will not be used by the function."
-  | Nonreturning_statement ->
-      "this statement never returns (or has an unsound type.)"
-  | Preprocessor s -> s
-  | Useless_record_with ->
-      "all the fields are explicitly listed in this record:\n\
-       the 'with' clause is useless."
-  | Bad_module_name (modname) ->
-      "bad source file name: \"" ^ modname ^ "\" is not a valid module name."
-  | All_clauses_guarded ->
-      "this pattern-matching is not exhaustive.\n\
-       All clauses in this pattern-matching are guarded."
-  | Unused_var v | Unused_var_strict v -> "unused variable " ^ v ^ "."
-  | Wildcard_arg_to_constant_constr ->
-     "wildcard pattern given as argument to a constant constructor"
-  | Eol_in_string ->
-     "unescaped end-of-line in a string constant (non-portable code)"
-  | Duplicate_definitions (kind, cname, tc1, tc2) ->
-      Printf.sprintf "the %s %s is defined in both types %s and %s."
-        kind cname tc1 tc2
-  | Module_linked_twice(modname, file1, file2) ->
-      Printf.sprintf
-        "files %s and %s both define a module named %s"
-        file1 file2 modname
-  | Unused_value_declaration v -> "unused value " ^ v ^ "."
-  | Unused_open s -> "unused open " ^ s ^ "."
-  | Unused_open_bang s -> "unused open! " ^ s ^ "."
-  | Unused_type_declaration s -> "unused type " ^ s ^ "."
-  | Unused_for_index s -> "unused for-loop index " ^ s ^ "."
-  | Unused_ancestor s -> "unused ancestor variable " ^ s ^ "."
-  | Unused_constructor (s, Unused) -> "unused constructor " ^ s ^ "."
-  | Unused_constructor (s, Not_constructed) ->
-      "constructor " ^ s ^
-      " is never used to build values.\n\
-        (However, this constructor appears in patterns.)"
-  | Unused_constructor (s, Only_exported_private) ->
-      "constructor " ^ s ^
-      " is never used to build values.\n\
-        Its type is exported as a private type."
-  | Unused_extension (s, is_exception, complaint) ->
-     let kind =
-       if is_exception then "exception" else "extension constructor" in
-     let name = kind ^ " " ^ s in
-     begin match complaint with
-       | Unused -> "unused " ^ name
-       | Not_constructed ->
-          name ^
-          " is never used to build values.\n\
-           (However, this constructor appears in patterns.)"
-       | Only_exported_private ->
-          name ^
-          " is never used to build values.\n\
-            It is exported or rebound as a private extension."
-     end
-  | Unused_rec_flag ->
-      "unused rec flag."
-  | Name_out_of_scope (ty, [nm], false) ->
-      nm ^ " was selected from type " ^ ty ^
-      ".\nIt is not visible in the current scope, and will not \n\
-       be selected if the type becomes unknown."
-  | Name_out_of_scope (_, _, false) -> assert false
-  | Name_out_of_scope (ty, slist, true) ->
-      "this record of type "^ ty ^" contains fields that are \n\
-       not visible in the current scope: "
-      ^ String.concat " " slist ^ ".\n\
-       They will not be selected if the type becomes unknown."
-  | Ambiguous_name ([s], tl, false, expansion) ->
-      s ^ " belongs to several types: " ^ String.concat " " tl ^
-      "\nThe first one was selected. Please disambiguate if this is wrong."
-      ^ expansion
-  | Ambiguous_name (_, _, false, _ ) -> assert false
-  | Ambiguous_name (_slist, tl, true, expansion) ->
-      "these field labels belong to several types: " ^
-      String.concat " " tl ^
-      "\nThe first one was selected. Please disambiguate if this is wrong."
-      ^ expansion
-  | Disambiguated_name s ->
-      "this use of " ^ s ^ " relies on type-directed disambiguation,\n\
-       it will not compile with OCaml 4.00 or earlier."
-  | Nonoptional_label s ->
-      "the label " ^ s ^ " is not optional."
-  | Open_shadow_identifier (kind, s) ->
-      Printf.sprintf
-        "this open statement shadows the %s identifier %s (which is later used)"
-        kind s
-  | Open_shadow_label_constructor (kind, s) ->
-      Printf.sprintf
-        "this open statement shadows the %s %s (which is later used)"
-        kind s
-  | Bad_env_variable (var, s) ->
-      Printf.sprintf "illegal environment variable %s : %s" var s
-  | Attribute_payload (a, s) ->
-      Printf.sprintf "illegal payload for attribute '%s'.\n%s" a s
-  | Eliminated_optional_arguments sl ->
-      Printf.sprintf "implicit elimination of optional argument%s %s"
-        (if List.length sl = 1 then "" else "s")
-        (String.concat ", " sl)
-  | No_cmi_file(name, None) ->
-      "no cmi file was found in path for module " ^ name
-  | No_cmi_file(name, Some msg) ->
-      Printf.sprintf
-        "no valid cmi file was found in path for module %s. %s"
-        name msg
-  | Unexpected_docstring unattached ->
-      if unattached then "unattached documentation comment (ignored)"
-      else "ambiguous documentation comment"
-  | Wrong_tailcall_expectation b ->
-      Printf.sprintf "expected %s"
-        (if b then "tailcall" else "non-tailcall")
-  | Fragile_literal_pattern ->
-      Printf.sprintf
-        "Code should not depend on the actual values of\n\
-         this constructor's arguments. They are only for information\n\
-         and may change in future versions. %t" ref_manual_explanation
-  | Unreachable_case ->
-      "this match case is unreachable.\n\
-       Consider replacing it with a refutation case '<pat> -> .'"
-  | Misplaced_attribute attr_name ->
-      Printf.sprintf "the %S attribute cannot appear in this context" attr_name
-  | Duplicated_attribute attr_name ->
-      Printf.sprintf "the %S attribute is used more than once on this \
-          expression"
-        attr_name
-  | Inlining_impossible reason ->
-      Printf.sprintf "Cannot inline: %s" reason
-  | Ambiguous_var_in_pattern_guard vars ->
-      let vars = List.sort String.compare vars in
-      let vars_explanation =
-        let in_different_places =
-          "in different places in different or-pattern alternatives"
-        in
-        match vars with
-        | [] -> assert false
-        | [x] -> "variable " ^ x ^ " appears " ^ in_different_places
-        | _::_ ->
-            let vars = String.concat ", " vars in
-            "variables " ^ vars ^ " appear " ^ in_different_places
-      in
-      Printf.sprintf
-        "Ambiguous or-pattern variables under guard;\n\
-         %s.\n\
-         Only the first match will be used to evaluate the guard expression.\n\
-         %t"
-        vars_explanation ref_manual_explanation
-  | No_cmx_file name ->
-      Printf.sprintf
-        "no cmx file was found in path for module %s, \
-         and its interface was not compiled with -opaque" name
-  | Flambda_assignment_to_non_mutable_value ->
-      "A potential assignment to a non-mutable value was detected \n\
-        in this source file.  Such assignments may generate incorrect code \n\
-        when using Flambda."
-  | Unused_module s -> "unused module " ^ s ^ "."
-  | Unboxable_type_in_prim_decl t ->
-      Printf.sprintf
-        "This primitive declaration uses type %s, whose representation\n\
-         may be either boxed or unboxed. Without an annotation to indicate\n\
-         which representation is intended, the boxed representation has been\n\
-         selected by default. This default choice may change in future\n\
-         versions of the compiler, breaking the primitive implementation.\n\
-         You should explicitly annotate the declaration of %s\n\
-         with [@@boxed] or [@@unboxed], so that its external interface\n\
-         remains stable in the future." t t
-  | Constraint_on_gadt ->
-      "Type constraints do not apply to GADT cases of variant types."
-  | Erroneous_printed_signature s ->
-      "The printed interface differs from the inferred interface.\n\
-       The inferred interface contained items which could not be printed\n\
-       properly due to name collisions between identifiers."
-     ^ s
-     ^ "\nBeware that this warning is purely informational and will not catch\n\
-        all instances of erroneous printed interface."
-  | Unsafe_array_syntax_without_parsing ->
-     "option -unsafe used with a preprocessor returning a syntax tree"
-  | Redefining_unit name ->
-      Printf.sprintf
-        "This type declaration is defining a new '()' constructor\n\
-         which shadows the existing one.\n\
-         Hint: Did you mean 'type %s = unit'?" name
-  | Unused_functor_parameter s -> "unused functor parameter " ^ s ^ "."
-  | Match_on_mutable_state_prevent_uncurry ->
-    "This pattern depends on mutable state.\n\
-     It prevents the remaining arguments from being uncurried, which will \
-     cause additional closure allocations."
-  | Unused_field (s, Unused) -> "unused record field " ^ s ^ "."
-  | Unused_field (s, Not_read) ->
-      "record field " ^ s ^
-      " is never read.\n\
-        (However, this field is used to build or mutate values.)"
-  | Unused_field (s, Not_mutated) ->
-      "mutable record field " ^ s ^
-      " is never mutated."
-  | Missing_mli ->
-    "Cannot find interface file."
-  | Unused_tmc_attribute ->
-      "This function is marked @tail_mod_cons\n\
-       but is never applied in TMC position."
-  | Tmc_breaks_tailcall ->
-      "This call\n\
-       is in tail-modulo-cons positionin a TMC function,\n\
-       but the function called is not itself specialized for TMC,\n\
-       so the call will not be transformed into a tail call.\n\
-       Please either mark the called function with the [@tail_mod_cons]\n\
-       attribute, or mark this call with the [@tailcall false] attribute\n\
-       to make its non-tailness explicit."
-;;
-
-let nerrors = ref 0;;
 
 type reporting_information =
   { id : string
@@ -1070,81 +741,5 @@ let id_name w =
   | _ ->
       string_of_int n
 
-let report w =
-  match is_active w with
-  | false -> `Inactive
-  | true ->
-     if is_error w then incr nerrors;
-     `Active
-       { id = id_name w;
-         message = message w;
-         is_error = is_error w;
-         sub_locs = [];
-       }
-
-let report_alert (alert : alert) =
-  match alert_is_active alert with
-  | false -> `Inactive
-  | true ->
-      let is_error = alert_is_error alert in
-      if is_error then incr nerrors;
-      let message = Misc.normalise_eol alert.message in
-       (* Reduce \r\n to \n:
-           - Prevents any \r characters being printed on Unix when processing
-             Windows sources
-           - Prevents \r\r\n being generated on Windows, which affects the
-             testsuite
-       *)
-      let sub_locs =
-        if not alert.def.loc_ghost && not alert.use.loc_ghost then
-          [
-            alert.def, "Definition";
-            alert.use, "Expected signature";
-          ]
-        else
-          []
-      in
-      `Active
-        {
-          id = alert.kind;
-          message;
-          is_error;
-          sub_locs;
-        }
-
 exception Errors;;
 
-let reset_fatal () =
-  nerrors := 0
-
-let check_fatal () =
-  if !nerrors > 0 then begin
-    nerrors := 0;
-    raise Errors;
-  end;
-;;
-
-let help_warnings () =
-  List.iter
-    (fun {number; description; names} ->
-       let name =
-         match names with
-         | s :: _ -> " [" ^ s ^ "]"
-         | [] -> ""
-       in
-       Printf.printf "%3i%s %s\n" number name description)
-    descriptions;
-  print_endline "  A all warnings";
-  for i = Char.code 'b' to Char.code 'z' do
-    let c = Char.chr i in
-    match letter c with
-    | [] -> ()
-    | [n] ->
-        Printf.printf "  %c Alias for warning %i.\n" (Char.uppercase_ascii c) n
-    | l ->
-        Printf.printf "  %c warnings %s.\n"
-          (Char.uppercase_ascii c)
-          (String.concat ", " (List.map Int.to_string l))
-  done;
-  exit 0
-;;

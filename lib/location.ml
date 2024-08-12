@@ -14,18 +14,18 @@
 (**************************************************************************)
 
 open Lexing
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 type t = Warnings.loc =
   { loc_start: position; loc_end: position; loc_ghost: bool }
 [@@deriving  yojson]
 
-let in_file name =
-  let loc = { dummy_pos with pos_fname = name } in
-  { loc_start = loc; loc_end = loc; loc_ghost = true }
-;;
+(* let in_file name = *)
+(*   let loc = { dummy_pos with pos_fname = name } in *)
+(*   { loc_start = loc; loc_end = loc; loc_ghost = true } *)
+(* ; *)
 
-let none = in_file "_none_";;
-let is_none l = (l = none);;
+(* let none = in_file "_none_";; *)
+(* let is_none l = (l = none);; *)
 
 let curr lexbuf = {
   loc_start = lexbuf.lex_start_p;
@@ -42,29 +42,28 @@ let init lexbuf fname =
   }
 ;;
 
-let symbol_rloc () = {
-  loc_start = Parsing.symbol_start_pos ();
-  loc_end = Parsing.symbol_end_pos ();
-  loc_ghost = false;
-};;
+(* let symbol_rloc () = { *)
+(*   loc_start = Parsing.symbol_start_pos (); *)
+(*   loc_end = Parsing.symbol_end_pos (); *)
+(*   loc_ghost = false; *)
+(* };; *)
 
-let symbol_gloc () = {
-  loc_start = Parsing.symbol_start_pos ();
-  loc_end = Parsing.symbol_end_pos ();
-  loc_ghost = true;
-};;
+(* let symbol_gloc () = { *)
+(*   loc_start = Parsing.symbol_start_pos (); *)
+(*   loc_end = Parsing.symbol_end_pos (); *)
+(*   loc_ghost = true; *)
+(* };; *)
 
-let rhs_loc n = {
-  loc_start = Parsing.rhs_start_pos n;
-  loc_end = Parsing.rhs_end_pos n;
-  loc_ghost = false;
-};;
-
-let rhs_interval m n = {
-  loc_start = Parsing.rhs_start_pos m;
-  loc_end = Parsing.rhs_end_pos n;
-  loc_ghost = false;
-};;
+(* let rhs_loc n = { *)
+(*   loc_start = Parsing.rhs_start_pos n; *)
+(*   loc_end = Parsing.rhs_end_pos n; *)
+(*   loc_ghost = false; *)
+(* };; *)
+(* let rhs_interval m n = { *)
+(*   loc_start = Parsing.rhs_start_pos m; *)
+(*   loc_end = Parsing.rhs_end_pos n; *)
+(*   loc_ghost = false; *)
+(* };; *)
 
 (* return file, line, char from the given position *)
 let get_pos_info pos =
@@ -76,9 +75,8 @@ type 'a loc = {
   loc : t;
 }
 [@@deriving  yojson]
-let mkloc txt loc = { txt ; loc }
-let mknoloc txt = mkloc txt none
-
+(* let mkloc txt loc = { txt ; loc } *)
+(* let mknoloc txt = mkloc txt none *)
 (******************************************************************************)
 (* Input info *)
 
@@ -635,8 +633,8 @@ let lines_around_from_current_input ~start_pos ~end_pos =
 
 type msg = (Format.formatter -> unit) loc
 [@@deriving  yojson]
-let msg ?(loc = none) fmt =
-  Format.kdprintf (fun txt -> { loc; txt }) fmt
+(* let msg ?(loc = none) fmt = *)
+(*   Format.kdprintf (fun txt -> { loc; txt }) fmt *)
 
 type report_kind =
   | Report_error
@@ -832,129 +830,129 @@ let report_error ppf err =
 let mkerror loc sub txt =
   { kind = Report_error; main = { loc; txt }; sub }
 
-let errorf ?(loc = none) ?(sub = []) =
-  Format.kdprintf (mkerror loc sub)
+(* let errorf ?(loc = none) ?(sub = []) = *)
+(*   Format.kdprintf (mkerror loc sub) *)
 
-let error ?(loc = none) ?(sub = []) msg_str =
-  mkerror loc sub (fun ppf -> Format.pp_print_string ppf msg_str)
+(* let error ?(loc = none) ?(sub = []) msg_str = *)
+(*   mkerror loc sub (fun ppf -> Format.pp_print_string ppf msg_str) *)
 
-let error_of_printer ?(loc = none) ?(sub = []) pp x =
-  mkerror loc sub (fun ppf -> pp ppf x)
+(* let error_of_printer ?(loc = none) ?(sub = []) pp x = *)
+(*   mkerror loc sub (fun ppf -> pp ppf x) *)
 
-let error_of_printer_file print x =
-  error_of_printer ~loc:(in_file !input_name) print x
+(* let error_of_printer_file print x = *)
+(*   error_of_printer ~loc:(in_file !input_name) print x *)
 
 (******************************************************************************)
 (* Reporting warnings: generating a report from a warning number using the
    information in [Warnings] + convenience functions. *)
 
-let default_warning_alert_reporter report mk (loc: t) w : report option =
-  match report w with
-  | `Inactive -> None
-  | `Active { Warnings.id; message; is_error; sub_locs } ->
-      let msg_of_str str = fun ppf -> Format.pp_print_string ppf str in
-      let kind = mk is_error id in
-      let main = { loc; txt = msg_of_str message } in
-      let sub = List.map (fun (loc, sub_message) ->
-        { loc; txt = msg_of_str sub_message }
-      ) sub_locs in
-      Some { kind; main; sub }
+(* let default_warning_alert_reporter report mk (loc: t) w : report option = *)
+(*   match report w with *)
+(*   | `Inactive -> None *)
+(*   | `Active { Warnings.id; message; is_error; sub_locs } -> *)
+(*       let msg_of_str str = fun ppf -> Format.pp_print_string ppf str in *)
+(*       let kind = mk is_error id in *)
+(*       let main = { loc; txt = msg_of_str message } in *)
+(*       let sub = List.map (fun (loc, sub_message) -> *)
+(*         { loc; txt = msg_of_str sub_message } *)
+(*       ) sub_locs in *)
+(*       Some { kind; main; sub } *)
 
 
-let default_warning_reporter =
-  default_warning_alert_reporter
-    Warnings.report
-    (fun is_error id ->
-       if is_error then Report_warning_as_error id
-       else Report_warning id
-    )
+(* let default_warning_reporter = *)
+(*   default_warning_alert_reporter *)
+(*     Warnings.report *)
+(*     (fun is_error id -> *)
+(*        if is_error then Report_warning_as_error id *)
+(*        else Report_warning id *)
+(*     ) *)
 
-let warning_reporter = ref default_warning_reporter
-let report_warning loc w = !warning_reporter loc w
+(* let warning_reporter = ref default_warning_reporter *)
+(* let report_warning loc w = !warning_reporter loc w *)
 
-let formatter_for_warnings = ref Format.err_formatter
+(* let formatter_for_warnings = ref Format.err_formatter *)
 
-let print_warning loc ppf w =
-  match report_warning loc w with
-  | None -> ()
-  | Some report -> print_report ppf report
+(* let print_warning loc ppf w = *)
+(*   match report_warning loc w with *)
+(*   | None -> () *)
+(*   | Some report -> print_report ppf report *)
 
-let prerr_warning loc w = print_warning loc !formatter_for_warnings w
+(* let prerr_warning loc w = print_warning loc !formatter_for_warnings w *)
 
-let default_alert_reporter =
-  default_warning_alert_reporter
-    Warnings.report_alert
-    (fun is_error id ->
-       if is_error then Report_alert_as_error id
-       else Report_alert id
-    )
+(* let default_alert_reporter = *)
+(*   default_warning_alert_reporter *)
+(*     Warnings.report_alert *)
+(*     (fun is_error id -> *)
+(*        if is_error then Report_alert_as_error id *)
+(*        else Report_alert id *)
+(*     ) *)
 
-let alert_reporter = ref default_alert_reporter
-let report_alert loc w = !alert_reporter loc w
+(* let alert_reporter = ref default_alert_reporter *)
+(* let report_alert loc w = !alert_reporter loc w *)
 
-let print_alert loc ppf w =
-  match report_alert loc w with
-  | None -> ()
-  | Some report -> print_report ppf report
+(* let print_alert loc ppf w = *)
+(*   match report_alert loc w with *)
+(*   | None -> () *)
+(*   | Some report -> print_report ppf report *)
 
-let prerr_alert loc w = print_alert loc !formatter_for_warnings w
+(* let prerr_alert loc w = print_alert loc !formatter_for_warnings w *)
 
-let alert ?(def = none) ?(use = none) ~kind loc message =
-  prerr_alert loc {Warnings.kind; message; def; use}
+(* let alert ?(def = none) ?(use = none) ~kind loc message = *)
+(*   prerr_alert loc {Warnings.kind; message; def; use} *)
 
-let deprecated ?def ?use loc message =
-  alert ?def ?use ~kind:"deprecated" loc message
+(* let deprecated ?def ?use loc message = *)
+(*   alert ?def ?use ~kind:"deprecated" loc message *)
 
-(******************************************************************************)
-(* Reporting errors on exceptions *)
+(* (\******************************************************************************\) *)
+(* (\* Reporting errors on exceptions *\) *)
 
-let error_of_exn : (exn -> error option) list ref = ref []
+(* let error_of_exn : (exn -> error option) list ref = ref [] *)
 
-let register_error_of_exn f = error_of_exn := f :: !error_of_exn
+(* let register_error_of_exn f = error_of_exn := f :: !error_of_exn *)
 
 exception Already_displayed_error = Warnings.Errors
 
-let error_of_exn exn =
-  match exn with
-  | Already_displayed_error -> Some `Already_displayed
-  | _ ->
-     let rec loop = function
-       | [] -> None
-       | f :: rest ->
-          match f exn with
-          | Some error -> Some (`Ok error)
-          | None -> loop rest
-     in
-     loop !error_of_exn
+(* let error_of_exn exn = *)
+(*   match exn with *)
+(*   | Already_displayed_error -> Some `Already_displayed *)
+(*   | _ -> *)
+(*      let rec loop = function *)
+(*        | [] -> None *)
+(*        | f :: rest -> *)
+(*           match f exn with *)
+(*           | Some error -> Some (`Ok error) *)
+(*           | None -> loop rest *)
+(*      in *)
+(*      loop !error_of_exn *)
 
-let () =
-  register_error_of_exn
-    (function
-      | Sys_error msg ->
-          Some (errorf ~loc:(in_file !input_name) "I/O error: %s" msg)
-      | _ -> None
-    )
+(* let () = *)
+(*   register_error_of_exn *)
+(*     (function *)
+(*       | Sys_error msg -> *)
+(*           Some (errorf ~loc:(in_file !input_name) "I/O error: %s" msg) *)
+(*       | _ -> None *)
+(*     ) *)
 
-external reraise : exn -> 'a = "%reraise"
+(* external reraise : exn -> 'a = "%reraise" *)
 
-let report_exception ppf exn =
-  let rec loop n exn =
-    match error_of_exn exn with
-    | None -> reraise exn
-    | Some `Already_displayed -> ()
-    | Some (`Ok err) -> report_error ppf err
-    | exception exn when n > 0 -> loop (n-1) exn
-  in
-  loop 5 exn
+(* let report_exception ppf exn = *)
+(*   let rec loop n exn = *)
+(*     match error_of_exn exn with *)
+(*     | None -> reraise exn *)
+(*     | Some `Already_displayed -> () *)
+(*     | Some (`Ok err) -> report_error ppf err *)
+(*     | exception exn when n > 0 -> loop (n-1) exn *)
+(*   in *)
+(*   loop 5 exn *)
 
-exception Error of error
+(* exception Error of error *)
 
-let () =
-  register_error_of_exn
-    (function
-      | Error e -> Some e
-      | _ -> None
-    )
+(* let () = *)
+(*   register_error_of_exn *)
+(*     (function *)
+(*       | Error e -> Some e *)
+(*       | _ -> None *)
+(*     ) *)
 
-let raise_errorf ?(loc = none) ?(sub = []) =
-  Format.kdprintf (fun txt -> raise (Error (mkerror loc sub txt)))
+(* let raise_errorf ?(loc = none) ?(sub = []) = *)
+(*   Format.kdprintf (fun txt -> raise (Error (mkerror loc sub txt))) *)

@@ -12,7 +12,7 @@
 (*   special exception on linking described in the file LICENSE.          *)
 (*                                                                        *)
 (**************************************************************************)
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 (** Auxiliary AST types used by parsetree and typedtree.
 
   {b Warning:} this module is unstable and part of

@@ -1,4 +1,6 @@
 (executable
  (public_name ocaml_introspector)
  (name main)
- (libraries ocaml_introspector))
+ (libraries ocaml_introspector
+  ppxlib ppx_yojson_conv_lib
+))

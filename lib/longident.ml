@@ -12,7 +12,7 @@
 (*   special exception on linking described in the file LICENSE.          *)
 (*                                                                        *)
 (**************************************************************************)
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 type t =
     Lident of string
   | Ldot of t * string
