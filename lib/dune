@@ -1,0 +1,13 @@
+(env
+ (_
+  (flags
+   (:standard -warn-error -8-9-26-27-37-34-11-11-32-39  -annot  -verbose -dsource ))))
+
+(library (name Typing)
+
+ (libraries  ppxlib )
+
+ (preprocess
+  (pps ppx_yojson))
+)
+
