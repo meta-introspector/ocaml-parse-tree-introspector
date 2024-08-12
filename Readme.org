@@ -1,3 +1,5 @@
 * extraction from ocaml to create serialization to be used in ocaml.
 
+nix-shell -p ocamlPackages.ppx_yojson_conv
+nix-shell -p ocamlPackages.ppx_yojson_conv_lib
 dune build  --verbose  --debug-dependency-path --always-show-command-line > log.txt 2>&1
