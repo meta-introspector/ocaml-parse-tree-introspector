@@ -16,7 +16,7 @@
 (* Representation of types and declarations *)
 
 open Asttypes
-
+open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 (* Type expressions for the core language *)
 
 type transient_expr =
@@ -37,54 +37,56 @@ and type_desc =
   | Tnil
   | Tlink of type_expr
   | Tsubst of type_expr * type_expr option
-  | Tvariant of row_desc
+  (* | Tvariant of row_desc *)
   | Tunivar of string option
   | Tpoly of type_expr * type_expr list
   | Tpackage of Path.t * (Longident.t * type_expr) list
 [@@deriving  yojson]
-and row_desc =
-    { row_fields: (label * row_field) list;
-      row_more: type_expr;
-      row_closed: bool;
-      row_fixed: fixed_explanation option;
-      row_name: (Path.t * type_expr list) option }
-[@@deriving  yojson]
+(* and row_desc = *)
+(*     { row_fields: (label * row_field) list; *)
+(*       row_more: type_expr; *)
+(*       row_closed: bool; *)
+(*       row_fixed: fixed_explanation option; *)
+(*       row_name: (Path.t * type_expr list) option } *)
+(* [@@deriving  yojson] *)
 and fixed_explanation =
   | Univar of type_expr | Fixed_private | Reified of Path.t | Rigid
 [@@deriving  yojson]
-and row_field = [`some] row_field_gen
-[@@deriving  yojson]
-and _ row_field_gen =
-    RFpresent : type_expr option -> [> `some] row_field_gen
-  | RFeither :
-      { no_arg: bool;
-        arg_type: type_expr list;
-        matched: bool;
-        ext: [`some | `none] row_field_gen ref} -> [> `some] row_field_gen
-  | RFabsent : [> `some] row_field_gen
-  | RFnone : [> `none] row_field_gen
-[@@deriving  yojson]
+(* and row_field = [`some] row_field_gen *)
+(* [@@deriving  yojson] *)
+(* and _ row_field_gen = *)
+(*     RFpresent : type_expr option -> [> `some] row_field_gen *)
+(*   | RFeither : *)
+(*       { no_arg: bool; *)
+(*         arg_type: type_expr list; *)
+(*         matched: bool; *)
+(*         ext: [`some | `none] row_field_gen ref} -> [> `some] row_field_gen *)
+(*   | RFabsent : [> `some] row_field_gen *)
+(*   | RFnone : [> `none] row_field_gen *)
+(* [@@deriving  yojson] *)
 and abbrev_memo =
     Mnil
   | Mcons of private_flag * Path.t * type_expr * type_expr * abbrev_memo
   | Mlink of abbrev_memo ref
 [@@deriving  yojson]
 and any = [`some | `none | `var]
+(* [@@deriving  yojson] *)
+ and field_kind = [`some|`var] field_kind_gen
 [@@deriving  yojson]
-and field_kind = [`some|`var] field_kind_gen
-[@@deriving  yojson]
-and _ field_kind_gen =
-    FKvar : {mutable field_kind: any field_kind_gen} -> [> `var] field_kind_gen
-  | FKprivate : [> `none] field_kind_gen  (* private method; only under FKvar *)
-  | FKpublic  : [> `some] field_kind_gen  (* public method *)
-  | FKabsent  : [> `some] field_kind_gen  (* hidden private method *)
-[@@deriving  yojson]
+ and _ field_kind_gen =
+   Fixme
+     (*     FKvar : {mutable field_kind: any field_kind_gen} -> [> `var] field_kind_gen *)
+     (* | FKprivate : [> `none] field_kind_gen  (\* private method; only under FKvar *\) *)
+     (*   | FKpublic  : [> `some] field_kind_gen  (\* public method *\) *)
+     (*   | FKabsent  : [> `some] field_kind_gen  (\* hidden private method *\) *)
+     [@@deriving  yojson] 
 and commutable = [`some|`var] commutable_gen
 [@@deriving  yojson]
 and _ commutable_gen =
-    Cok      : [> `some] commutable_gen
-  | Cunknown : [> `none] commutable_gen
-  | Cvar : {mutable commu: any commutable_gen} -> [> `var] commutable_gen
+  FixMecommutable_gen
+  (*   Cok      : [> `some] commutable_gen *)
+  (* | Cunknown : [> `none] commutable_gen *)
+  (* | Cvar : {mutable commu: any commutable_gen} -> [> `var] commutable_gen *)
 [@@deriving  yojson]
 module TransientTypeOps = struct
   type t = type_expr
@@ -113,7 +115,7 @@ type value_description =
   { val_type: type_expr;                (* Type of the value *)
     val_kind: value_kind;
     val_loc: Location.t;
-    val_attributes: Parsetree.attributes;
+    val_attributes: Parsetree_attribute.attributes;
     val_uid: Uid.t;
   }
 [@@deriving  yojson]
