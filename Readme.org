@@ -1,5 +1,70 @@
 * extraction from ocaml to create serialization to be used in ocaml.
 
+The goal here is to strip down the asts into a set of types
+and then use those types to generate serialization code for the asts
+as a standalone module that can be linked back into ocaml itself
+or the asts can be copied from the original asts into these new types
+using the prexisting ast migration code.
+
+That will allow for the compiler to have a json serialization function without
+having to use ppx directly in the compiler. ( I could not get it to work easily)
+
+This repo contains verbatim source code from ocaml 4.14,
+copied from a few different directories, typing, parsing and utils.
+
+I annotated the types manually with [@@deriving  yojson], and removed
+all the "val" signatures from the modules, and also did not implement the hash tables and sets
+and low level implementations. 
+
+#+begin_src shell
+  cp /ocaml/typing/dune .
+  cp /ocaml/typing/typedtree.ml .
+  cp /ocaml/parsing/builtin_attributes.ml .
+  cp /ocaml/parsing/asttypes.mli  asttypes.ml
+  cp /ocaml/parsing/parsetree.mli parsetree.ml
+  cp /ocaml/parsing/location.ml .
+  cp /ocaml/parsing/longident.ml .
+  cp /ocaml/utils/warnings.ml .
+  cp /ocaml/utils/identifiable.ml lib/identifiable.ml
+#+end_src
+
+
+it has been manually annotated with 
+#+begin_src opam
+base                  v0.16.3     Full standard library replacement for OCaml
+base-bigarray         base
+base-threads          base
+base-unix             base
+conf-bash             1           Virtual package to install the Bash shell
+csexp                 1.5.2       Parsing and printing of S-expressions in Canonical form
+dot-merlin-reader     4.9         Reads config files for merlin
+dune                  3.16.0      Fast, portable, and opinionated build system
+dune-configurator     3.16.0      Helper library for gathering system configuration
+host-arch-x86_64      1           OCaml on amd64 (64-bit)
+host-system-other     1           OCaml on an unidentified system
+merlin                4.16-414    Editor helper, provides completion, typing and source browsing in Vim and Emacs
+merlin-lib            4.16-414    Merlin's libraries
+ocaml                 4.14.0      The OCaml compiler (virtual package)
+ocaml-base-compiler   4.14.0      Official release 4.14.0
+ocaml-compiler-libs   v0.12.4     OCaml compiler libraries repackaged
+ocaml-config          2           OCaml Switch Configuration
+ocaml-options-vanilla 1           Ensure that OCaml is compiled with no special options enabled
+ocamlfind             1.9.6       A library manager for OCaml
+octavius              1.2.2       Ocamldoc comment syntax parser
+ppx_derivers          1.2.1       Shared [@@deriving] plugin registry
+ppx_js_style          v0.16.0     Code style checker for Jane Street Packages
+ppx_yojson_conv       v0.16.0     [@@deriving] plugin to generate Yojson conversion functions
+ppx_yojson_conv_lib   v0.16.0     Runtime lib for ppx_yojson_conv
+ppxlib                0.33.0      Standard infrastructure for ppx rewriters
+seq                   base        Compatibility package for OCaml's standard iterator type starting from 4.07.
+sexplib0              v0.16.0     Library containing the definition of S-expressions and some base converters
+stdlib-shims          0.3.0       Backport some of the new stdlib features to older compiler
+yojson                2.2.2       Yojson is an optimized parsing and printing library for the JSON format
+#+end_src
+
+
+#+begin_src shell
 nix-shell -p ocamlPackages.ppx_yojson_conv
 nix-shell -p ocamlPackages.ppx_yojson_conv_lib
 dune build  --verbose  --debug-dependency-path --always-show-command-line > log.txt 2>&1
+#+end_src
