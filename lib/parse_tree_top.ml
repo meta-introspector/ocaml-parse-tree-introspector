@@ -12,10 +12,9 @@
 (*   special exception on linking described in the file LICENSE.          *)
 (*                                                                        *)
 (**************************************************************************)
-
-open Ppx_yojson_conv_lib.Yojson_conv.Primitives
-open Asttypes
-open Typedtree
+module type ParseTreeTop = sig
+  type structure
+  type 'a loc
 type toplevel_phrase =
   | Ptop_def of structure
   | Ptop_dir of toplevel_directive  (** [#use], [#load] ... *)
@@ -38,3 +37,4 @@ and  directive_argument_desc =
   | Pdir_int of string * char option
   | Pdir_ident of Longident.t
   | Pdir_bool of bool
+end
