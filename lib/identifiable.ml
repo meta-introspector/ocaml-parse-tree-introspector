@@ -35,27 +35,6 @@ module type Map = sig
   include Map.S
     with type key = T.t
      and type 'a t = 'a Map.Make (T).t
-
-  val of_list : (key * 'a) list -> 'a t
-
-  val disjoint_union :
-    ?eq:('a -> 'a -> bool) -> ?print:(Format.formatter -> 'a -> unit) -> 'a t ->
-    'a t -> 'a t
-
-  val union_right : 'a t -> 'a t -> 'a t
-
-  val union_left : 'a t -> 'a t -> 'a t
-
-  val union_merge : ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
-  val rename : key t -> key -> key
-  val map_keys : (key -> key) -> 'a t -> 'a t
-  val keys : 'a t -> Set.Make(T).t
-  val data : 'a t -> 'a list
-  val of_set : (key -> 'a) -> Set.Make(T).t -> 'a t
-  val transpose_keys_and_data : key t -> key t
-  val transpose_keys_and_data_set : key t -> Set.Make(T).t t
-  val print :
-    (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
 end
 
 module type Tbl = sig
@@ -69,13 +48,6 @@ module type Tbl = sig
     with type key = T.t
      and type 'a t = 'a Hashtbl.Make (T).t
 
-  val to_list : 'a t -> (T.t * 'a) list
-  val of_list : (T.t * 'a) list -> 'a t
-
-  val to_map : 'a t -> 'a Map.Make(T).t
-  val of_map : 'a Map.Make(T).t -> 'a t
-  val memoize : 'a t -> (key -> 'a) -> key -> 'a
-  val map : 'a t -> ('a -> 'b) -> 'b t
 end
 
 module Pair (A : Thing) (B : Thing) : Thing with type t = A.t * B.t = struct
