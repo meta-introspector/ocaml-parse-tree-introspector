@@ -1,2 +1,4 @@
 (test
- (name test_ocaml_introspector))
+ (name test_ocaml_introspector)
+ (preprocess  (staged_pps ppx_yojson_conv ppx_mina_introspector))
+)

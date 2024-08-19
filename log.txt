@@ -1,35 +1,0 @@
-Shared cache: disabled
-Shared cache location: /home/mdupont/.cache/dune/db
-Workspace root: /mnt/data1/nix/time/2024/08/12/ocaml_introspector
-Auto-detected concurrency: 24
-Dune context:
- { name = "default"
- ; kind = "default"
- ; profile = Dev
- ; merlin = true
- ; fdo_target_exe = None
- ; build_dir = In_build_dir "default"
- ; installed_env =
-     map
-       { "INSIDE_DUNE" :
-           "/mnt/data1/nix/time/2024/08/12/ocaml_introspector/_build/default"
-       }
- ; instrument_with = []
- }
-Actual targets:
-- alias @@default
-Done: 62% (5/8, 3 left) (jobs: 0)                                 Running[1]: (cd _build/default && /home/mdupont/.opam/4.14.0/bin/ocamlc.opt -w @1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -bin-annot -I test/.test_ocaml_introspector.eobjs/byte -no-alias-deps -opaque -o test/.test_ocaml_introspector.eobjs/byte/dune__exe__Test_ocaml_introspector.cmi -c -intf test/test_ocaml_introspector.mli)
-Done: 62% (5/8, 3 left) (jobs: 0)                                 File "lib/dune", line 11, characters 7-22:
-11 |   (pps ppx_yojson_conv))
-            ^^^^^^^^^^^^^^^
-Error: Library "ppx_yojson_conv" not found.
--> required by library "ocaml_introspector" in _build/default/lib
--> required by executable main in bin/dune:3
--> required by _build/default/bin/main.exe
--> required by _build/install/default/bin/ocaml_introspector
--> required by _build/default/ocaml_introspector.install
--> required by alias all
--> required by alias default
-Done: 62% (5/8, 3 left) (jobs: 0)                                 Running[2]: (cd _build/default && /home/mdupont/.opam/4.14.0/bin/ocamlopt.opt -w @1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I test/.test_ocaml_introspector.eobjs/byte -I test/.test_ocaml_introspector.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o test/.test_ocaml_introspector.eobjs/native/dune__exe__Test_ocaml_introspector.cmx -c -impl test/test_ocaml_introspector.ml)
-Done: 62% (5/8, 3 left) (jobs: 0)                                 Done: 18% (15/79, 64 left, 1 failed) (jobs: 1)                                              Running[3]: (cd _build/default && /home/mdupont/.opam/4.14.0/bin/ocamlopt.opt -w @1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -o test/test_ocaml_introspector.exe test/.test_ocaml_introspector.eobjs/native/dune__exe__Test_ocaml_introspector.cmx)
-Done: 18% (15/79, 64 left, 1 failed) (jobs: 1)                                              Done: 20% (16/79, 63 left, 1 failed) (jobs: 1)                                              

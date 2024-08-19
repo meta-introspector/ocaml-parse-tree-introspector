@@ -3,4 +3,7 @@
  (name main)
  (libraries ocaml_introspector
   ppxlib ppx_yojson_conv_lib
-))
+)
+	 (preprocess  (staged_pps ppx_yojson_conv ppx_mina_introspector))
+)
+

@@ -1,13 +1,12 @@
 (env
  (_
   (flags
-   (:standard -warn-error -8-9-26-27-37-34-11-11-32-39  -annot  -verbose  ))))
+   (:standard -warn-error -8-9-26-27-37-34-11-11-32-39-50  -annot  -verbose  ))))
 
 (library (name ocaml_introspector_attributes)
 
  (libraries  ppxlib ppx_yojson_conv_lib)
 
- (preprocess
-  (pps ppx_yojson_conv ))
+ (preprocess  (staged_pps ppx_yojson_conv ppx_mina_introspector))
 )
 
